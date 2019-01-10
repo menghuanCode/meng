@@ -39,11 +39,20 @@ const resolve = p => {
 
 // 建设对象
 const builds = {
-  // Runtime+compiler CommonJs build (ES Modules)
-  'web-full-esm': {
+  // Runtime+compiler development build (Browser)
+  'web-full-dev': {
     entry: resolve('web/entry-runtime-with-compiler.js'),
-    dest: resolve('dist/vue.esm.js'),
-    format: 'es',
+    dest: resolve('dist/vue.js'),
+    format: 'umd',
+    env: 'development',
+    alias: { he: './entity-decoder' }
+  },
+  // Runtime+compiler production build  (Browser)
+  'web-full-prod': {
+    entry: resolve('web/entry-runtime-with-compiler.js'),
+    dest: resolve('dist/vue.min.js'),
+    format: 'umd',
+    env: 'production',
     alias: { he: './entity-decoder' },
     banner
   }
@@ -60,20 +69,20 @@ function genConfig(name) {
     input: opts.entry,        // 输出文件
     external: opts.external,  // 指出应将哪些模块视为外部模块
     plugins: [
-      replace({   // 字符替换
+      replace({   // 文件字符替换
         __VERSION__: version,
       }),
-      flow(),
-      buble(),
-      alias(Object.assign({}, aliases, opts.alias))
-    ].concat(opts.plugins || []),
+      flow(),      // node_module 中的第三方模块
+      buble(),     // node_module 中的第三方模块
+      alias(Object.assign({}, aliases, opts.alias)) // 定义别名, 引入 package 时可以直接使用别名
+    ].concat(opts.plugins || []),   // 添加 options 中需要的插件
     output: {
       file: opts.dest,
       format:opts.format,
       banner: opts.banner,
       name: opts.moduleName || 'Vue'
     },
-    onwarn: (msg, warn) => {
+    onwarn: (msg, warn) => {  // 拦截警报
       if (!/Circular/.test(msg)) {
         warn(msg);
       }
@@ -81,12 +90,12 @@ function genConfig(name) {
   }
 
   if (opts.env) {
-    config.plugins.push(replace({
+    config.plugins.push(replace({   // 文件字符替换
       'process.env.NODE_ENV': JSON.stringify(opts.env)
     }))
   }
 
-  Object.defineProperty(config, '_name', {
+  Object.defineProperty(config, '_name', {  // 定义属性(私有)
     enumerable: false,
     value: name
   })

@@ -1,11 +1,5 @@
-function Vue() {
+/* @flow */
+import Vue from './runtime/index'
 
-}
-
-Vue.compile = "compileToFunctions"
-
-
-console.log(1);
-console.log(2)
 
 export default Vue
