@@ -1,8 +1,10 @@
 const path = require('path')
-const alias = require('rollup-plugin-alias')            // 使用 packages 时可以定义别名
-const cjs = require('rollup-plugin-commonjs')           // 将CommonJS 模块转换成 ES6
-const replace = require('rollup-plugin-replace')        // 在捆绑文件时替换字符串
-const node = require('rollup-plugin-node-resolve')      // 允许加载在 node_modules 中的第三方模块
+const buble = require('rollup-plugin-buble')              // 替代babel，用来转换es5
+const alias = require('rollup-plugin-alias')              // 使用 packages 时可以定义别名
+const cjs = require('rollup-plugin-commonjs')             // 将CommonJS 模块转换成 ES6
+const replace = require('rollup-plugin-replace')          // 在捆绑文件时替换字符串
+const node = require('rollup-plugin-node-resolve')        // 允许加载在 node_modules 中的第三方模块
+const flow = require('rollup-plugin-flow-no-whitespace')  // 去掉flow使用的类型检查代码
 const version = process.env.VERSION || require('../package.json').version   // 获取版本信息
 
 // 广告
@@ -13,11 +15,18 @@ const banner =
   ' * Released under the MIT License.\n' +
   ' */'
 
+const weexFactoryPlugin = {
+  intro() {
+    return 'module.exports = function weexFactory(exports, document) {'
+  },
+  outro() {
+    return '}'
+  }
+}
 
 
 // 别名
 const aliases = require('./alias');
-
 // 路径转换
 const resolve = p => {
   const base = p.split('/')[0]
@@ -30,14 +39,6 @@ const resolve = p => {
 
 // 建设对象
 const builds = {
-  // Runtime only (ES Modules). Used by bundles that support ES Modules,
-  // e.g. Rollup & Webpack 2
-  'web-runtime-esm': {
-    entry: resolve('web/entry-runtime.js'),
-    dest: resolve('dist/vue.runtime.esm.js'),
-    format: 'es',
-    banner
-  },
   // Runtime+compiler CommonJs build (ES Modules)
   'web-full-esm': {
     entry: resolve('web/entry-runtime-with-compiler.js'),
@@ -56,13 +57,15 @@ const builds = {
 function genConfig(name) {
   const opts = builds[name]
   const config = {
-    input: opts.entry,
-    external: opts.external,
+    input: opts.entry,        // 输出文件
+    external: opts.external,  // 指出应将哪些模块视为外部模块
     plugins: [
-      replace({
-        __VERSION__: version
+      replace({   // 字符替换
+        __VERSION__: version,
       }),
-      flow()
+      flow(),
+      buble(),
+      alias(Object.assign({}, aliases, opts.alias))
     ].concat(opts.plugins || []),
     output: {
       file: opts.dest,
