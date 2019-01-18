@@ -46,8 +46,8 @@ function validateComponentName(name: string) {
 
 
 /**
- * 确保将所有 props 选项语法规范化为
- * Object-based format.
+ * 确保将所有 Props 规范化为
+ * Object-based format(基于对象格式).
  */
 function normalizeProps(options: Object, vm: ?Component) {
   const props = options.props
@@ -61,7 +61,8 @@ function normalizeProps(options: Object, vm: ?Component) {
     while(i--) {
       val = props[i]
       if (typeof val === 'string') {
-        name =
+        // 驼峰化属性名
+        name = camelize(val)
       }
     }
   }
@@ -69,6 +70,52 @@ function normalizeProps(options: Object, vm: ?Component) {
   options.props = res
 }
 
+/**
+ * 将所有注入规范化为
+ * Object-based format(基于对象格式).
+ */
+function normalizeInject(options: Object, vm: ?Component) {
+  const inject = options.inject
+  if (!inject) return
+
+  const normalized = options.inject = {}
+  if (Array.isArray(inject)) {
+    for (let i = 0; i < inject.length; i++) {
+      normalized[inject[i]] = { form: inject[i] }
+    }
+  } else if(isPlainObject(inject)) {
+      for(const key in inject) {
+        const val = inject[key]
+        normalized[key] = isPlainObject(val)
+          ? extend({ from: key }, val)
+          : { from: val }
+      }
+  } else if (process.env.NODE_ENV !== 'production') {
+    warn(
+      // 无效值或对象 "inject": 期望一个对象或数组,
+      // 但是来了其他类型,
+      `Invalid value for option "inject": expected an Array or an Object, ` +
+      `but got ${toRawType(inject)}.`,
+      vm
+    )
+  }
+}
+
+/**
+ * 将原始函数指令标准化为
+ * Object-based format(基于对象格式).
+ */
+function normalizeDirectives(options: Object) {
+  const dirs = options.directives
+  if (dirs) {
+    for (const key in dirs) {
+      const def = dirs[key]
+      if (typeof def === 'function') {
+        dirs[key] = { bind: def, update: def }
+      }
+    }
+  }
+}
 
 /**
  * 将两个选项对象合并成一个新对象。

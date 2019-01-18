@@ -45,7 +45,8 @@ const builds = {
     dest: resolve('dist/vue.js'),
     format: 'umd',
     env: 'development',
-    alias: { he: './entity-decoder' }
+    alias: { he: './entity-decoder' },
+    banner
   },
   // Runtime+compiler production build  (Browser)
   'web-full-prod': {

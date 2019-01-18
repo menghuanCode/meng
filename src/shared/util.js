@@ -5,17 +5,17 @@
  */
 export function makeMap(
   str: string,
-  expectsLowerCase: boolean     // 预计转小写
-) : (key: string) => true | void {
-  const map = Object.create(null)
-  const list = str.split(',')
+  expectLowerCase: boolean
+) : (key: string) => boolean | void {
+  let map = Object.create(null)
+  let list = str.split(',')
   for(let i = 0; i < list.length; i++) {
     map[list[i]] = true
   }
 
-  return expectsLowerCase
-    ? (val) => map[val.toLowerCase()]
-    : (val) => map[val]
+  return expectLowerCase
+    ? key => map[key.toLowerCase()]
+    : key => map[key]
 }
 
 /**
@@ -24,7 +24,7 @@ export function makeMap(
 export const isBuiltInTag = makeMap('slot,component', true)
 
 /**
- * 创建一个存函数的缓存版本
+ * 创建一个纯函数的缓存版本
  */
 export function cached<F: Function> (fn: F): F {
   const cache = Object.create(null)
@@ -36,7 +36,7 @@ export function cached<F: Function> (fn: F): F {
 
 
 /**
- * Camelize 驼峰化 一个-连接的字符串
+ * Camelize 驼峰化 使-连接字符串驼峰化
  */
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {

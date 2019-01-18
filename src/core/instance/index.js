@@ -13,9 +13,6 @@ function Vue(options) {
   this._init(options)
 }
 
-Vue.prototype._init = function () {
-
-}
 
 // 初始化混入
 initMixin(Vue)
