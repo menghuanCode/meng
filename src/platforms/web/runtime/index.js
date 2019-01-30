@@ -1,14 +1,13 @@
 /* @flow */
 
-import Vue from './runtime/index'
+import Vue from 'core/index'
 
-const mount = Vue.prototype.$mount
+// public mount method
 Vue.prototype.$mount = function (
 	el?: string | Element,
 	hydrating?: boolean
 ): Component {
 	
-	return mount.call(this, el, hydrating)
 }
 
 
