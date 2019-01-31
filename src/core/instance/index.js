@@ -9,7 +9,7 @@ function Vue(options) {
 		console.error('Vue 是一个构造器，必须用 "new" 关键字调用')
 	}
 
-	this.__init(options)
+	this._init(options)
 }
 
 initMixin(Vue)
