@@ -44,7 +44,7 @@ function initData(vm: Component) {
 
 	if (!isPlainObject(data)) {
 		data = {}
-		process.env.NODE_ENV !== 'production' && console.warn(
+		process.env.NODE_ENV !== 'production' && warn(
 			'data函数应该返回一个对象:\n' + 
 			'https://vuejs.org/v2/guide/components.html#data-Must-Be-a-Function',
 			vm
@@ -60,7 +60,7 @@ function initData(vm: Component) {
 		const key = keys[i]
 		if (process.env.NODE_ENV !== 'production') {
 			if (methods && hasOwn(methods, key)) {
-				console.warn(`方法 "${key}" 已被定义为 data 属性.`, vm)
+				warn(`方法 "${key}" 已被定义为 data 属性.`, vm)
 			}
 		}
 

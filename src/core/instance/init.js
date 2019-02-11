@@ -6,7 +6,7 @@ import { initEvents } from './events'
 import { initRender } from './render'
 import { initLifecycle, callHook } from './lifecycle'
 import { initProvide, initInjections } from './inject'
-import { mergeOptions } from '../util/index'
+import { extend, mergeOptions } from '../util/index'
 
 
 let uid = 0
@@ -26,7 +26,7 @@ export function initMixin (Vue: Class<Component>) {
 			// 并且没有内部组件选项需要特殊处理
 		} else {
 			vm.$options = mergeOptions(
-				// resolveConstructorOptions(vm.constructor),
+				resolveConstructorOptions(vm.constructor),
 				options || {},
 				vm
 			)
@@ -58,5 +58,58 @@ export function initMixin (Vue: Class<Component>) {
 
 export function resolveConstructorOptions(Ctor: Class<Component>) {
 	let options = Ctor.options
+	if (Ctor.super) {
+		const superOptions = resolveConstructorOptions(Ctor.super)
+		const cachedSuperOptions = Ctor.superOptions
+		if (superOptions !== cachedSuperOptions) {
+			// super option changed,
+      // need to resolve new options.
+      Ctor.superOptions = superOptions
+      // 检查是否有后期修改或附加选项(#4976)
+      const modifiedOptions = resolveModifiedOptions(Ctor)
+      // 更新基本扩展选项
+      if (modifiedOptions) {
+      	extend(Ctor.extendOptions, modifiedOptions)
+      }
+      options = Ctor.options = mergeOptions(superOptions, Ctor.extendOptions)
+      if (options.name) {
+      	options.component[options.name] = Ctor
+      }
+		}
+	}
 	return options
+}
+
+function resolveModifiedOptions(Ctor: Class<Component>): ?Object {
+	let modified
+	const latest = Ctor.options
+	const extended = Ctor.options
+	const sealed = Ctor.sealedOptions
+	for (const key in latest) {
+		if (latest[key] !== sealed[key]) {
+			if (!modified) modified = {}
+			modified[key] = dedupe(latest[key], extended[key], sealed[key])
+		}
+	}
+	return modified
+}
+
+// 重复数据删除
+function dedupe(lastest, extended, sealed) {
+	// 比较最新和密封以确保生命周期挂钩不会重复
+	// 合并之间
+	if (Array.isArray(lastest)) {
+		const res = []
+		sealed = Array.isArray(sealed) ? sealed : [sealed]
+		extended = Array.isArray(extended) ? extended : [extended]
+    for (let i = 0; i < latest.length; i++) {
+    	//推送原始选项而非密封选项以排除重复选项
+    	if (extended.indexOf(lastest[i]) >= 0 || sealed.indexOf(lastest[i] < 0)) {
+    		res.push(lastest[i])
+    	}
+    }
+    return res
+	} else {
+		return lastest
+	}
 }

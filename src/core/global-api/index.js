@@ -8,6 +8,7 @@ import { ASSET_TYPES } from 'shared/constants'
 import buildInComponents from '../components/index'
 
 import {
+	warn,
 	extend
 } from '../util/index'
 
@@ -18,7 +19,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
 	
 	if (process.env.NODE_ENV !== 'production') {
 		configDef.set = () => {
-			console.warn("不能替换 Vue.config 对象， 而是设置单个字段");
+			warn("不能替换 Vue.config 对象， 而是设置单个字段")
 		}	
 	}
 	Object.defineProperty(Vue, 'config', configDef)

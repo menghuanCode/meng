@@ -1,5 +1,6 @@
 import { initMixin } from './init'
 import { stateMixin } from './state'
+import { renderMixin } from './render'
  
 // Vue 也是从一个基础函数一步步实现而来的
 function Vue(options) {
@@ -14,6 +15,6 @@ function Vue(options) {
 
 initMixin(Vue)
 stateMixin(Vue)
-
+renderMixin(Vue)
 
 export default Vue

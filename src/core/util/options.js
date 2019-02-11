@@ -1,10 +1,16 @@
 /* @flow */
 
+import { warn } from './debug'
 import config from '../config'
 
 import {
-	hasOwn,
-	isBuiltInTag
+  extend,
+  hasOwn,
+  camelize,
+  toRawType,
+  capitalize,
+  isBuiltInTag,
+  isPlainObject
 } from 'shared/util'
 
 // 选项合并策略
@@ -17,11 +23,13 @@ const strats = config.optionMergeStrategies
 if (process.env.NODE_ENV !== 'production') {
 	strats.el = strats.propsData = function (parent, child, vm, key) {
 		if (!vm) {
-			console.warn(`选项"${key}"只能在实例` + `使用'new'关键字创建`)
+			warn(
+        `选项 "${key}" 只能在实例中使用，` +
+        '`new` 关键字创建实例.'
+      )
 		}
 		return defaultStrat(parent, child)
 	}
-
 }
 
 
@@ -45,7 +53,7 @@ function checkComponents (options: Object) {
 
 export function validateComponentName(name: string) {
 	if (!/^[a-zA-Z][\w-]*$/.test(name)) {
-		console.warn(
+		warn(
 			'无效的组件名称： "' + name + '". 组件名称 ' +
 			'只能包含字母数字字符和连字符', + 
 			'必须以字母开头'
@@ -53,13 +61,94 @@ export function validateComponentName(name: string) {
 	}
 	
 	if (isBuiltInTag(name) || config.isReservedTag(name)) {
-		console.warn(
+		warn(
 	      '不能讲内置或保留的html元素用于组件 ' +
 	      'id: ' + name
 		)
 	}
 }
 
+/**
+ * 规范化 props
+ * 基于对象格式
+ */
+function normalizeProps(options: Object, vm: ?Component) {
+	const props = options.props
+	if (!props) return
+	const res = {}
+	let i, val, name
+	if (Array.isArray(props)) {
+		i = props.length
+		while(i--) {
+			val = props[i]
+			if (typeof val === 'string') {
+				name = camelize(val)
+				res[name] = { type: null }
+			} else if (process.env.NODE_ENV !== 'production') {
+				warn('使用数组语法时，props必须是字符串.')
+			}
+		}
+	} else if (isPlainObject(props)) {
+		for(const key in props) {
+			val = props[key]
+			name = camelize[key]
+			res[name] = isPlainObject(val)
+				? val
+				: { type: val }
+		}
+	} else if (process.env.NODE_ENV !== 'production') {
+		warn(
+      `选项 "props" 的值无效: 期望是一个数组或者对象, ` +
+      `但传递过来的是 ${toRawType(props)}.`,
+      vm
+    )
+	}
+}
+
+/**
+ * 规范化 Inject
+ * 基于对象的格式
+ */
+function normalizeInject(options: Object, vm: ?Comment) {
+	const inject = options.inject
+	if (!inject) return
+	const normalized = options.inject = {}
+	if (Array.isArray(inject)) {
+		for(let i = 0; i < inject.length; i++) {
+			normalized[inject[i]] = { from: inject[i] }
+		} 
+	} else if(isPlainObject(inject)) {
+		for (const key in inject) {
+			const val = inject[key]
+			normalized[key] = isPlainObject(val)
+				? extend({ from: key }, val)
+				: { from: val }
+		}
+	} else if(process.env.NODE_ENV !== 'production') {
+			warn(
+      `选项 "inject" 的值无效: 期望是一个数组或者对象, ` +
+      `但传递过来的是 ${toRawType(inject)}.`,
+      vm
+    	)
+	}
+}
+
+
+/**
+ * 规范化 directives
+ * 基于对象的格式
+ */
+function normalizeDirectives(options: Object) {
+	const dirs = options.directives
+	if (dirs) {
+		for(const key in dirs) {
+			const def = dirs[key]
+			if (typeof def === 'function') {
+				dirs[key] = { bind: def, update: def }
+			}
+		}
+	}
+}
 
 /**
  * 合并两个对象生成一个新的。
@@ -79,9 +168,9 @@ export function mergeOptions (
 		child = child.options
 	}
 
-	// normalizeProps(child, vm)
-	// normalizePropsInject(child, vm)
-	// normalizeDirectives(child)
+	normalizeProps(child, vm)
+	normalizeInject(child, vm)
+	normalizeDirectives(child)
 
 	// 在子选项上应用 extends 和 mixins,
 	// 但前提是他是一个原始选项对象

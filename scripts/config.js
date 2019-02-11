@@ -17,7 +17,7 @@ const banner =
 
 const weexFactoryPlugin = {
   intro() {
-    return 'module.exports = function weexFactory(exports, document) {'
+    return 'module.exports = function wee  xFactory(exports, document) {'
   },
   outro() {
     return '}'
@@ -27,6 +27,7 @@ const weexFactoryPlugin = {
 
 // 别名
 const aliases = require('./alias');
+
 // 路径转换
 const resolve = p => {
   const base = p.split('/')[0]
@@ -71,6 +72,7 @@ function genConfig(name) {
     external: opts.external,  // 指出应将哪些模块视为外部模块
     plugins: [
       replace({   // 文件字符替换
+        __WEEX__: !!opts.weex,
         __VERSION__: version,
       }),
       flow(),      // node_module 中的第三方模块
@@ -90,6 +92,7 @@ function genConfig(name) {
     }
   }
 
+  // 区分 "development" 和 "production"
   if (opts.env) {
     config.plugins.push(replace({   // 文件字符替换
       'process.env.NODE_ENV': JSON.stringify(opts.env)
