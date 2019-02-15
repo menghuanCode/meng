@@ -3,8 +3,9 @@
 import config from '../config'
 import { noop } from 'shared/util'
 
-export let generateComponentTrace = (noop: any)	// 解决 flow 检查问题
 export let warn = noop
+export let tip = noop
+export let generateComponentTrace = (noop: any)	// 解决 flow 检查问题
 
 if (process.env.NODE_ENV !== 'production') {
 
@@ -19,4 +20,13 @@ if (process.env.NODE_ENV !== 'production') {
 	    console.error(`[Vue warn]: ${msg}${trace}`)
 	  }
 	}
+
+	tip = (msg, vm) => {
+	  if (hasConsole && (!config.slient)) {
+	    console.warn(`[Vue tip]: ${msg}` + (
+	      vm ? generateComponentTrace(vm) : ''
+      ))
+    }
+  }
+
 }

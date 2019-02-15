@@ -1,8 +1,10 @@
 /* @flow */
 
 import Vue from './runtime/index'
-import { warn, cached } from 'core/util/index'
 import { query } from './util/index'
+import { warn, cached } from 'core/util/index'
+import { compileToFunctions } from './complier/index'
+import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
 const idToTemplate = cached(id => {
 	const el = query(id)
@@ -10,7 +12,6 @@ const idToTemplate = cached(id => {
 })
 
 const mount = Vue.prototype.$mount
-
 Vue.prototype.$mount = function (
 	el?: string | Element,
 	hydrating?: boolean
@@ -25,13 +26,13 @@ Vue.prototype.$mount = function (
 	}
 
 	const options = this.$options
-
 	// 解析 template/el 并转换为 render 函数
+
 	if (!options.render) {
 		let template = options.template
 		if (template) {
 			if (typeof template === 'string') {
-				if (template.charAt(0) === '#app') {
+				if (template.charAt(0) === '#') {
 					template = idToTemplate(template)
 					if (process.env.NODE_ENV !== 'production' && !template) {
 						warn(`模板元素没找到或者是空: ${options.template}`,this)
@@ -49,8 +50,18 @@ Vue.prototype.$mount = function (
 			template = getOuterHTML(el)
 		}
 		if (template) {
+		  const { render, staticRenderFns } = compileToFunctions(template, {
+		    shouldDecodeNewlines,
+        shouldDecodeNewlinesForHref,
+        delimiters: options.delimiters,
+        comments: options.comments
+      }, this)
+
+      // options.render = render
+      // options.staticRenderFns = staticRenderFns
 		}
 	}
+
 
 	return mount.call(this, el, hydrating)
 }

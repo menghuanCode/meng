@@ -1,5 +1,12 @@
 /* @flow */
 
+import { warn } from 'core/util/index'
+
+export * from './attrs'
+export * from './class'
+export * from './element'
+
+
 /**
  * 如果元素选择器不是元素，则查询它
  */

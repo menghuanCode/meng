@@ -60,12 +60,12 @@ export function mountComponent (
 
 		callHook(vm, 'beforeMount')
 
-
 		let updateComponet
 
 		updateComponet = () => {
 			vm._update(vm._render(), hydrating)
 		}
+
 
 		// 我们这观察者的构造函数中定义了vm._watcher
 		// 因为观察者的初始化可能会调用 $forceUpdate

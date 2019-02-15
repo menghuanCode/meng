@@ -62,12 +62,16 @@ export function makeMap(
 	str: string,
 	expectsLowerCase?: boolean
 ): (key: string) => true | void {
-	let obj = {}
-	let keys = str.split(',')
+  const map = Object.create(null)
+  const list: Array<string> = str.split(',')
+
+  for (let i = 0; i < list.length; i++) {
+    map[list[i]] = true
+  }
 
 	return expectsLowerCase
-		? key => obj[key.toLowerCase()]
-		: key => obj[key]
+		? key => map[key.toLowerCase()]
+		: key => map[key]
 }
 
 /**
