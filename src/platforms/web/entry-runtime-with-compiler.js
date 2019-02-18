@@ -3,7 +3,7 @@
 import Vue from './runtime/index'
 import { query } from './util/index'
 import { warn, cached } from 'core/util/index'
-import { compileToFunctions } from './complier/index'
+import { compileToFunctions } from './compiler/index'
 import { shouldDecodeNewlines, shouldDecodeNewlinesForHref } from './util/compat'
 
 const idToTemplate = cached(id => {

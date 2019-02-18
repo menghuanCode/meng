@@ -69,6 +69,8 @@ export function parse(
     }
   }
 
+  debugger
+
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -86,8 +88,17 @@ export function parse(
       if (isIE && ns === 'svg') {
         attrs = guardIESVGBug(attrs)
       }
+
+    },
+    end () {
+
+    },
+    chars (text: string) {},
+    comment (text: string) {
+
     }
   })
+
   return root
 }
 
